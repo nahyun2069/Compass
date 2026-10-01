@@ -1,0 +1,1103 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>COMPASS - 학습 타임테이블 워크스테이션</title>
+  <!-- Google Fonts & Pretendard -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
+  <!-- SheetJS CDN (Excel Download) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
+  <style>
+    :root {
+      /* Pure White & Romantic Blue Theme */
+      --bg-surface: #F8FAFC;
+      --card-bg: #FFFFFF;
+      
+      --text-primary: #1E293B;
+      --text-secondary: #475569;
+      --text-tertiary: #94A3B8;
+
+      /* Romantic Blue Accent (#AAD1E7) */
+      --accent-romantic: #AAD1E7;
+      --accent-romantic-dark: #6CAAD1;
+      --accent-romantic-deep: #3B7FA3;
+      --accent-light: #F0F7FB;
+      --accent-border: #D1E6F3;
+
+      --border-subtle: #E2E8F0;
+      --border-strong: #CBD5E1;
+
+      --success-bg: #F0FDF4;
+      --success-text: #166534;
+      --success-border: #BBF7D0;
+
+      --warning-bg: #FEF2F2;
+      --warning-text: #991B1B;
+      --warning-border: #FECACA;
+
+      --radius-lg: 16px;
+      --radius-md: 12px;
+      --radius-sm: 8px;
+
+      --shadow-subtle: 0 4px 20px -2px rgba(148, 163, 184, 0.12), 0 2px 6px -1px rgba(148, 163, 184, 0.08);
+      --shadow-hover: 0 10px 25px -3px rgba(108, 170, 209, 0.2);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Pretendard', 'Inter', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    body {
+      background-color: var(--bg-surface);
+      color: var(--text-primary);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Top Navigation Header */
+    .top-navbar {
+      height: 64px;
+      background: var(--card-bg);
+      border-bottom: 1px solid var(--border-subtle);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 32px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .brand-logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 700;
+      font-size: 16px;
+      letter-spacing: -0.02em;
+      color: var(--text-primary);
+    }
+
+    .brand-icon {
+      width: 28px;
+      height: 28px;
+      border-radius: 8px;
+      background: var(--accent-light);
+      border: 1px solid var(--accent-border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .brand-icon svg {
+      width: 18px;
+      height: 18px;
+      stroke: var(--accent-romantic-deep);
+    }
+
+    .wizard-steps-indicator {
+      display: flex;
+      align-items: center;
+      gap: 24px;
+    }
+
+    .step-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text-tertiary);
+      transition: all 0.2s ease;
+    }
+
+    .step-item.active {
+      color: var(--accent-romantic-deep);
+      font-weight: 700;
+    }
+
+    .step-num {
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+    }
+
+    .step-item.active .step-num {
+      background: var(--accent-romantic);
+      border-color: var(--accent-romantic-dark);
+      color: var(--text-primary);
+    }
+
+    /* Full Screen Workspace Layout */
+    .workspace-wrapper {
+      flex: 1;
+      max-width: 1200px;
+      width: 100%;
+      margin: 0 auto;
+      padding: 32px 24px 60px;
+    }
+
+    .step-panel {
+      display: none;
+      animation: fadeIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+
+    .step-panel.active {
+      display: block;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .panel-header {
+      margin-bottom: 28px;
+      text-align: center;
+    }
+
+    .panel-title {
+      font-size: 24px;
+      font-weight: 700;
+      color: var(--text-primary);
+      letter-spacing: -0.02em;
+      margin-bottom: 8px;
+    }
+
+    .panel-desc {
+      font-size: 14px;
+      color: var(--text-secondary);
+    }
+
+    /* Cards Layout */
+    .content-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      padding: 32px;
+      box-shadow: var(--shadow-subtle);
+    }
+
+    /* Buttons */
+    .btn-primary {
+      height: 48px;
+      padding: 0 28px;
+      background-color: var(--accent-romantic);
+      color: var(--text-primary);
+      border: 1px solid var(--accent-romantic-dark);
+      border-radius: var(--radius-md);
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .btn-primary:hover {
+      background-color: var(--accent-romantic-dark);
+      color: white;
+      box-shadow: var(--shadow-hover);
+    }
+
+    .btn-secondary {
+      height: 48px;
+      padding: 0 24px;
+      background-color: white;
+      color: var(--text-secondary);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    .btn-secondary:hover {
+      border-color: var(--border-strong);
+      color: var(--text-primary);
+      background: var(--bg-surface);
+    }
+
+    .btn-group-center {
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+      margin-top: 32px;
+    }
+
+    /* Form Fields */
+    .field-label {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin-bottom: 8px;
+      display: block;
+    }
+
+    .text-input {
+      width: 100%;
+      height: 44px;
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-sm);
+      padding: 0 14px;
+      font-size: 14px;
+      color: var(--text-primary);
+      outline: none;
+      background: white;
+      transition: border-color 0.15s ease;
+    }
+
+    .text-input:focus {
+      border-color: var(--accent-romantic-dark);
+    }
+
+    /* STEP 0: Welcome Screen */
+    .hero-box {
+      text-align: center;
+      padding: 60px 20px;
+    }
+
+    .compass-graphic {
+      width: 80px;
+      height: 80px;
+      margin: 0 auto 24px;
+      background: var(--accent-light);
+      border: 1px solid var(--accent-border);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .compass-graphic svg {
+      width: 44px;
+      height: 44px;
+      stroke: var(--accent-romantic-deep);
+    }
+
+    /* STEP 1: Todo Inputs */
+    .todo-grid-container {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+
+    .todo-row {
+      display: grid;
+      grid-template-columns: 2fr 1fr 1fr 40px;
+      gap: 12px;
+      align-items: center;
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      padding: 12px 16px;
+      border-radius: var(--radius-md);
+    }
+
+    .select-box {
+      height: 40px;
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-sm);
+      padding: 0 10px;
+      font-size: 13px;
+      color: var(--text-secondary);
+      background: white;
+      outline: none;
+    }
+
+    .btn-icon-del {
+      width: 32px;
+      height: 32px;
+      border: none;
+      background: transparent;
+      color: var(--text-tertiary);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 6px;
+    }
+
+    .btn-icon-del:hover {
+      background: var(--warning-bg);
+      color: var(--warning-text);
+    }
+
+    /* STEP 2: Option Selection Grid */
+    .option-cards-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+
+    .opt-card-item {
+      background: white;
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      padding: 18px 14px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    .opt-card-item:hover {
+      border-color: var(--border-strong);
+    }
+
+    .opt-card-item.selected {
+      border-color: var(--accent-romantic-dark);
+      background: var(--accent-light);
+      font-weight: 600;
+      color: var(--accent-romantic-deep);
+    }
+
+    .opt-title {
+      font-size: 14px;
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+
+    .opt-sub {
+      font-size: 11px;
+      color: var(--text-tertiary);
+    }
+
+    /* STEP 3: Time Grid Matrix */
+    .matrix-time-grid {
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      gap: 10px;
+      margin-bottom: 24px;
+    }
+
+    .matrix-chip {
+      height: 50px;
+      background: white;
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-sm);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      cursor: pointer;
+      user-select: none;
+      transition: all 0.15s ease;
+    }
+
+    .matrix-chip:hover {
+      border-color: var(--accent-romantic);
+    }
+
+    .matrix-chip.selected {
+      background: var(--accent-romantic);
+      border-color: var(--accent-romantic-dark);
+      color: var(--text-primary);
+      font-weight: 600;
+    }
+
+    .chip-time {
+      font-size: 13px;
+    }
+
+    .chip-status {
+      font-size: 10px;
+      opacity: 0.7;
+    }
+
+    /* STEP 4: Diagnosis Overview Dashboard */
+    .diag-dashboard {
+      display: grid;
+      grid-template-columns: 2fr 1fr;
+      gap: 24px;
+    }
+
+    .diag-main-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      padding: 28px;
+    }
+
+    .diag-status-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 14px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 700;
+      margin-bottom: 16px;
+    }
+
+    .diag-heading {
+      font-size: 20px;
+      font-weight: 700;
+      margin-bottom: 10px;
+    }
+
+    .diag-paragraph {
+      font-size: 14px;
+      color: var(--text-secondary);
+      line-height: 1.6;
+      margin-bottom: 20px;
+    }
+
+    .diag-metrics-row {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      border-top: 1px solid var(--border-subtle);
+      padding-top: 20px;
+    }
+
+    .metric-box {
+      text-align: center;
+    }
+
+    .metric-val {
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--accent-romantic-deep);
+    }
+
+    .metric-lbl {
+      font-size: 12px;
+      color: var(--text-tertiary);
+      margin-top: 4px;
+    }
+
+    /* STEP 5: Final Dashboard Workspace */
+    .dashboard-grid {
+      display: grid;
+      grid-template-columns: 1fr 340px;
+      gap: 24px;
+    }
+
+    .motto-banner {
+      background: var(--accent-light);
+      border: 1px solid var(--accent-border);
+      border-radius: var(--radius-md);
+      padding: 16px 20px;
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--accent-romantic-deep);
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .schedule-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      max-height: 480px;
+      overflow-y: auto;
+    }
+
+    .schedule-card {
+      display: flex;
+      align-items: center;
+      background: white;
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      padding: 14px 18px;
+      gap: 16px;
+    }
+
+    .time-badge {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--accent-romantic-deep);
+      background: var(--accent-light);
+      border: 1px solid var(--accent-border);
+      padding: 4px 10px;
+      border-radius: 6px;
+      white-space: nowrap;
+    }
+
+    .task-title-text {
+      flex: 1;
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    .task-title-text.completed {
+      text-decoration: line-through;
+      color: var(--text-tertiary);
+    }
+
+    .custom-checkbox {
+      width: 22px;
+      height: 22px;
+      border-radius: 6px;
+      border: 2px solid var(--border-strong);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.15s ease;
+    }
+
+    .custom-checkbox.checked {
+      background: var(--accent-romantic-dark);
+      border-color: var(--accent-romantic-dark);
+      color: white;
+    }
+
+    /* Widgets Panel */
+    .widget-box {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      padding: 20px;
+      margin-bottom: 16px;
+    }
+
+    .widget-header {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text-secondary);
+      margin-bottom: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .pomo-display {
+      font-size: 32px;
+      font-weight: 700;
+      text-align: center;
+      color: var(--text-primary);
+      margin: 10px 0;
+      letter-spacing: 0.05em;
+    }
+
+    .pomo-controls {
+      display: flex;
+      gap: 8px;
+    }
+
+    .btn-pomo {
+      flex: 1;
+      height: 36px;
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-sm);
+      background: white;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .btn-pomo:hover {
+      background: var(--accent-light);
+      border-color: var(--accent-border);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top Navbar -->
+  <nav class="top-navbar">
+    <div class="brand-logo">
+      <div class="brand-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2">
+          <circle cx="12" cy="12" r="10"/>
+          <polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/>
+        </svg>
+      </div>
+      <span>COMPASS WORKSTATION</span>
+    </div>
+
+    <!-- Step Progress Indicator -->
+    <div class="wizard-steps-indicator" id="stepIndicator">
+      <div class="step-item active" data-step="1">
+        <div class="step-num">1</div>
+        <span>목표 입력</span>
+      </div>
+      <div class="step-item" data-step="2">
+        <div class="step-num">2</div>
+        <span>환경 & 컨디션</span>
+      </div>
+      <div class="step-item" data-step="3">
+        <div class="step-num">3</div>
+        <span>시간 설정</span>
+      </div>
+      <div class="step-item" data-step="4">
+        <div class="step-num">4</div>
+        <span>컨디션 진단</span>
+      </div>
+      <div class="step-item" data-step="5">
+        <div class="step-num">5</div>
+        <span>타임테이블</span>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Main Content Wrapper -->
+  <main class="workspace-wrapper">
+
+    <!-- STEP 0: Welcome Landing Screen -->
+    <div class="step-panel active" id="step0">
+      <div class="content-card hero-box">
+        <div class="compass-graphic">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8">
+            <circle cx="12" cy="12" r="10"/>
+            <polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/>
+          </svg>
+        </div>
+        <h1 class="panel-title" style="font-size: 28px;">오늘의 학습 항해 워크스테이션</h1>
+        <p class="panel-desc" style="max-width: 520px; margin: 0 auto 32px; line-height: 1.6;">
+          공부 과목과 소요 시간, 집중 장소와 컨디션을 다각도로 분석하여<br>몰입감 높은 맞춤형 최적 학습 타임테이블을 생성합니다.
+        </p>
+        <button class="btn-primary" onclick="goToStep(1)">
+          플래너 설계 시작하기
+        </button>
+      </div>
+    </div>
+
+    <!-- STEP 1: Todo Inputs -->
+    <div class="step-panel" id="step1">
+      <div class="panel-header">
+        <h2 class="panel-title">1단계: 학습 목표 항목 입력</h2>
+        <p class="panel-desc">오늘 완수해야 할 공부 과목과 예상 소요 시간, 우선순위를 설정하세요.</p>
+      </div>
+      <div class="content-card">
+        <div class="todo-grid-container" id="todoGridList"></div>
+        <button class="btn-secondary" onclick="addTodoRow()" style="width: 100%;">+ 새로운 공부 과목 추가</button>
+
+        <div class="btn-group-center">
+          <button class="btn-secondary" onclick="goToStep(0)">이전</button>
+          <button class="btn-primary" onclick="validateStep1()">다음 단계 (환경 선택)</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- STEP 2: Environment & Condition -->
+    <div class="step-panel" id="step2">
+      <div class="panel-header">
+        <h2 class="panel-title">2단계: 학습 환경 및 시작 컨디션</h2>
+        <p class="panel-desc">오늘 공부할 공간의 특성과 현재 몰입 에너지 상태를 선택하세요.</p>
+      </div>
+
+      <div class="content-card">
+        <span class="field-label" style="font-size: 14px; margin-bottom: 12px;">공부 장소 선택</span>
+        <div class="option-cards-grid" id="placeGrid">
+          <div class="opt-card-item selected" onclick="selectCardOption('placeGrid', this)">
+            <div class="opt-title">집 (내 방)</div>
+            <div class="opt-sub">편안하고 익숙한 공간</div>
+          </div>
+          <div class="opt-card-item" onclick="selectCardOption('placeGrid', this)">
+            <div class="opt-title">독서실 / 스카페</div>
+            <div class="opt-sub">소음 차단 & 정적 몰입</div>
+          </div>
+          <div class="opt-card-item" onclick="selectCardOption('placeGrid', this)">
+            <div class="opt-title">학교 / 도서관</div>
+            <div class="opt-sub">적당한 자극과 소음</div>
+          </div>
+          <div class="opt-card-item" onclick="selectCardOption('placeGrid', this)">
+            <div class="opt-title">카페</div>
+            <div class="opt-sub">개방적 라이트 분위기</div>
+          </div>
+        </div>
+
+        <span class="field-label" style="font-size: 14px; margin-bottom: 12px;">시작 전 에너지 상태</span>
+        <div class="option-cards-grid" id="energyGrid" style="grid-template-columns: repeat(3, 1fr);">
+          <div class="opt-card-item selected" onclick="selectCardOption('energyGrid', this)">
+            <div class="opt-title">최상 (몰입 준비 완료)</div>
+            <div class="opt-sub">고난도 학습 집중 가능</div>
+          </div>
+          <div class="opt-card-item" onclick="selectCardOption('energyGrid', this)">
+            <div class="opt-title">보통 (평상시 컨디션)</div>
+            <div class="opt-sub">균형 잡힌 페이스 유지</div>
+          </div>
+          <div class="opt-card-item" onclick="selectCardOption('energyGrid', this)">
+            <div class="opt-title">휴식 필요 (피로 누적)</div>
+            <div class="opt-sub">쉬엄쉬엄 복습 중심</div>
+          </div>
+        </div>
+
+        <span class="field-label" style="font-size: 14px; margin-top: 12px;">오늘의 한 줄 슬로건</span>
+        <input type="text" id="motivationInput" class="text-input" placeholder="예: 오늘 계획한 인강 완강하고 자유 시간 즐기기">
+
+        <div class="btn-group-center">
+          <button class="btn-secondary" onclick="goToStep(1)">이전</button>
+          <button class="btn-primary" onclick="goToStep(3)">다음 단계 (시간 선택)</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- STEP 3: Time Grid Matrix -->
+    <div class="step-panel" id="step3">
+      <div class="panel-header">
+        <h2 class="panel-title">3단계: 가용 시간대 지정</h2>
+        <p class="panel-desc">오늘 공부에 실제로 투입할 수 있는 타임 블록을 클릭하여 선택하세요.</p>
+      </div>
+
+      <div class="content-card">
+        <div class="matrix-time-grid" id="timeMatrixGrid"></div>
+
+        <div style="background: var(--accent-light); border: 1px solid var(--accent-border); border-radius: var(--radius-md); padding: 16px 20px; display: flex; justify-content: space-between; align-items: center;">
+          <span style="font-size: 14px; font-weight: 600; color: var(--text-primary);">선택된 총 가용 시간</span>
+          <span id="selectedHoursText" style="font-size: 18px; font-weight: 700; color: var(--accent-romantic-deep);">0시간</span>
+        </div>
+
+        <div class="btn-group-center">
+          <button class="btn-secondary" onclick="goToStep(2)">이전</button>
+          <button class="btn-primary" onclick="generateDiagnosis()">학습 컨디션 진단 실행</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- STEP 4: Independent Diagnosis Dashboard -->
+    <div class="step-panel" id="step4">
+      <div class="panel-header">
+        <h2 class="panel-title">4단계: 학습 컨디션 및 실행 가능성 진단</h2>
+        <p class="panel-desc">목표 과목 총 시간과 선택 가용 시간을 바탕으로 AI 심층 분석을 완료했습니다.</p>
+      </div>
+
+      <div class="content-card">
+        <div class="diag-dashboard">
+          <div class="diag-main-card">
+            <div id="diagPill" class="diag-status-pill">진단 중</div>
+            <h3 id="diagMainTitle" class="diag-heading">-</h3>
+            <p id="diagMainDesc" class="diag-paragraph">-</p>
+
+            <div class="diag-metrics-row">
+              <div class="metric-box">
+                <div class="metric-val" id="metricTarget">0h</div>
+                <div class="metric-lbl">목표 필요 시간</div>
+              </div>
+              <div class="metric-box">
+                <div class="metric-val" id="metricAvailable">0h</div>
+                <div class="metric-lbl">확보 가용 시간</div>
+              </div>
+              <div class="metric-box">
+                <div class="metric-val" id="metricPlace">-</div>
+                <div class="metric-lbl">선택 장소</div>
+              </div>
+            </div>
+          </div>
+
+          <div style="display: flex; flex-direction: column; gap: 12px; justify-content: center;">
+            <div style="background: var(--bg-surface); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 18px; font-size: 13px; color: var(--text-secondary); line-height: 1.5;">
+              <strong style="color: var(--text-primary); display: block; margin-bottom: 6px;">💡 최적 집중 가이드</strong>
+              <span id="diagTipText">선택한 장소와 에너지 수준에 맞춰 효율적인 과목 순서로 스케줄이 자동으로 재배치됩니다.</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="btn-group-center">
+          <button class="btn-secondary" onclick="goToStep(3)">시간 다시 수정</button>
+          <button class="btn-primary" onclick="goToStep(5)">타임테이블 생성 및 확인</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- STEP 5: Final Dashboard Workspace -->
+    <div class="step-panel" id="step5">
+      <div class="panel-header">
+        <h2 class="panel-title">5단계: 최종 학습 타임테이블 워크스테이션</h2>
+        <p class="panel-desc">완성된 일정을 확인하고 체크리스트 및 타이머 도구를 활용하세요.</p>
+      </div>
+
+      <div class="dashboard-grid">
+        <!-- Left: Timetable Area -->
+        <div>
+          <div class="motto-banner" id="mottoBanner">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+            </svg>
+            <span id="mottoText">"오늘 목표도 깔끔하게 완수해봅시다!"</span>
+          </div>
+
+          <div class="schedule-list" id="scheduleListContainer"></div>
+
+          <div style="display: flex; gap: 12px; margin-top: 24px;">
+            <button class="btn-primary" style="flex: 1;" onclick="downloadExcel()">엑셀 파일로 다운로드</button>
+            <button class="btn-secondary" onclick="goToStep(0)">새 플래너 만들기</button>
+          </div>
+        </div>
+
+        <!-- Right: Utility Widgets -->
+        <div>
+          <!-- Widget 1: Pomodoro Timer -->
+          <div class="widget-box">
+            <div class="widget-header">25분 포모도로 타이머</div>
+            <div class="pomo-display" id="timerDisplay">25:00</div>
+            <div class="pomo-controls">
+              <button class="btn-pomo" onclick="startTimer()">시작</button>
+              <button class="btn-pomo" onclick="pauseTimer()">일시정지</button>
+              <button class="btn-pomo" onclick="resetTimer()">리셋</button>
+            </div>
+          </div>
+
+          <!-- Widget 2: Summary Stats -->
+          <div class="widget-box">
+            <div class="widget-header">학습 요약</div>
+            <div style="display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 8px;">
+              <span style="color: var(--text-tertiary);">달성률</span>
+              <span id="completionRateText" style="font-weight: 700; color: var(--accent-romantic-deep);">0%</span>
+            </div>
+            <div style="height: 6px; background: var(--border-subtle); border-radius: 999px; overflow: hidden;">
+              <div id="progressBarInner" style="width: 0%; height: 100%; background: var(--accent-romantic-dark); transition: width 0.3s ease;"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <script>
+    let todos = [];
+    let selectedHours = [];
+    let plannedSchedule = [];
+    const timeSlots = [
+      "15:00~16:00", "16:00~17:00", "17:00~18:00", "18:00~19:00", 
+      "19:00~20:00", "20:00~21:00", "21:00~22:00", "22:00~23:00", 
+      "23:00~24:00", "00:00~01:00", "01:00~02:00", "02:00~03:00"
+    ];
+
+    window.onload = () => {
+      addTodoRow("수학 문제집 20p 풀이", 2, 1);
+      addTodoRow("영어 단어 100개 암기", 1, 2);
+      renderTimeMatrix();
+    };
+
+    function goToStep(stepNum) {
+      document.querySelectorAll('.step-panel').forEach(p => p.classList.remove('active'));
+      document.getElementById(`step${stepNum}`).classList.add('active');
+
+      const indicators = document.querySelectorAll('.step-item');
+      indicators.forEach(item => {
+        const num = parseInt(item.getAttribute('data-step'));
+        if (num === stepNum) {
+          item.classList.add('active');
+        } else {
+          item.classList.remove('active');
+        }
+      });
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function selectCardOption(gridId, target) {
+      const parent = document.getElementById(gridId);
+      parent.querySelectorAll('.opt-card-item').forEach(c => c.classList.remove('selected'));
+      target.classList.add('selected');
+    }
+
+    function addTodoRow(title = '', duration = 1, priority = 1) {
+      const container = document.getElementById('todoGridList');
+      const row = document.createElement('div');
+      row.className = 'todo-row';
+      row.innerHTML = `
+        <input type="text" class="text-input task-title" placeholder="과목명 또는 학습 내용" value="${title}">
+        <select class="select-box task-duration">
+          ${[1,2,3,4,5,6].map(h => `<option value="${h}" ${h == duration ? 'selected':''}>${h}시간 소요</option>`).join('')}
+        </select>
+        <select class="select-box task-priority">
+          ${[1,2,3,4,5].map(p => `<option value="${p}" ${p == priority ? 'selected':''}>${p}순위</option>`).join('')}
+        </select>
+        <button class="btn-icon-del" onclick="this.parentElement.remove()">✕</button>
+      `;
+      container.appendChild(row);
+    }
+
+    function validateStep1() {
+      const rows = document.querySelectorAll('.todo-row');
+      todos = [];
+      for (let row of rows) {
+        const title = row.querySelector('.task-title').value.trim();
+        const duration = parseInt(row.querySelector('.task-duration').value);
+        const priority = parseInt(row.querySelector('.task-priority').value);
+        if (!title) { alert('모든 공부 항목의 이름을 입력해 주세요.'); return; }
+        todos.push({ title, duration, priority });
+      }
+      if (todos.length === 0) { alert('최소 1개 이상의 과목을 입력해야 합니다.'); return; }
+      goToStep(2);
+    }
+
+    function renderTimeMatrix() {
+      const grid = document.getElementById('timeMatrixGrid');
+      grid.innerHTML = '';
+      timeSlots.forEach((slot, idx) => {
+        const chip = document.createElement('div');
+        chip.className = 'matrix-chip';
+        chip.innerHTML = `
+          <div class="chip-time">${slot.split('~')[0]}</div>
+          <div class="chip-status">선택 가능</div>
+        `;
+        chip.onclick = () => {
+          chip.classList.toggle('selected');
+          if (chip.classList.contains('selected')) {
+            selectedHours.push(idx);
+          } else {
+            selectedHours = selectedHours.filter(i => i !== idx);
+          }
+          selectedHours.sort((a,b) => a - b);
+          document.getElementById('selectedHoursText').innerText = `${selectedHours.length}시간`;
+        };
+        grid.appendChild(chip);
+      });
+    }
+
+    function generateDiagnosis() {
+      if (selectedHours.length === 0) { alert('시간대를 선택해 주세요.'); return; }
+
+      const totalNeeded = todos.reduce((sum, t) => sum + t.duration, 0);
+      const available = selectedHours.length;
+      const place = document.querySelector('#placeGrid .selected .opt-title').innerText;
+
+      document.getElementById('metricTarget').innerText = `${totalNeeded}시간`;
+      document.getElementById('metricAvailable').innerText = `${available}시간`;
+      document.getElementById('metricPlace').innerText = place.split(' ')[0];
+
+      const pill = document.getElementById('diagPill');
+      const title = document.getElementById('diagMainTitle');
+      const desc = document.getElementById('diagMainDesc');
+
+      if (available >= totalNeeded) {
+        pill.style.background = "var(--success-bg)";
+        pill.style.color = "var(--success-text)";
+        pill.innerText = "목표 달성 양호";
+        title.innerText = "안정적이고 여유로운 학습이 예상됩니다";
+        desc.innerText = `선택한 가용 시간(${available}시간)이 필요 목표 시간(${totalNeeded}시간)을 충분히 수용합니다. 몰입에 매우 유리한 환경입니다.`;
+      } else {
+        pill.style.background = "var(--warning-bg)";
+        pill.style.color = "var(--warning-text)";
+        pill.innerText = "시간 부족 경고";
+        title.innerText = "목표 대비 시간이 다소 부족합니다";
+        desc.innerText = `총 ${totalNeeded - available}시간의 시간이 부족합니다. 우선순위가 높은 과목부터 자동으로 먼저 배정됩니다.`;
+      }
+
+      // Generate Schedule Data
+      const sortedTodos = [...todos].sort((a, b) => a.priority - b.priority);
+      plannedSchedule = [];
+      let hourIdx = 0;
+
+      sortedTodos.forEach(todo => {
+        let rem = todo.duration;
+        while (rem > 0 && hourIdx < selectedHours.length) {
+          plannedSchedule.push({
+            timeSlot: timeSlots[selectedHours[hourIdx]],
+            task: todo.title,
+            done: false
+          });
+          rem--;
+          hourIdx++;
+        }
+      });
+
+      // Step 5 display setup
+      const motto = document.getElementById('motivationInput').value.trim();
+      document.getElementById('mottoText').innerText = motto ? `"${motto}"` : `"오늘 목표도 깔끔하게 완수해봅시다!"`;
+      renderScheduleList();
+
+      goToStep(4);
+    }
+
+    function renderScheduleList() {
+      const container = document.getElementById('scheduleListContainer');
+      container.innerHTML = '';
+
+      let completedCount = 0;
+
+      plannedSchedule.forEach((item, idx) => {
+        if (item.done) completedCount++;
+        const card = document.createElement('div');
+        card.className = 'schedule-card';
+        card.innerHTML = `
+          <div class="time-badge">${item.timeSlot}</div>
+          <div class="task-title-text ${item.done ? 'completed' : ''}">${item.task}</div>
+          <div class="custom-checkbox ${item.done ? 'checked' : ''}" onclick="toggleCheck(${idx})">✓</div>
+        `;
+        container.appendChild(card);
+      });
+
+      // Update Progress Stats
+      const rate = plannedSchedule.length > 0 ? Math.round((completedCount / plannedSchedule.length) * 100) : 0;
+      document.getElementById('completionRateText').innerText = `${rate}%`;
+      document.getElementById('progressBarInner').style.width = `${rate}%`;
+    }
+
+    function toggleCheck(idx) {
+      plannedSchedule[idx].done = !plannedSchedule[idx].done;
+      renderScheduleList();
+    }
+
+    function downloadExcel() {
+      const motto = document.getElementById('motivationInput').value.trim();
+      const excelData = [
+        ["COMPASS 학습 타임테이블 플래너"],
+        ["오늘의 한 줄 다짐", motto || "없음"],
+        [],
+        ["시간대", "공부 과목 / 목표", "달성 상태"]
+      ];
+
+      plannedSchedule.forEach(item => {
+        excelData.push([item.timeSlot, item.task, item.done ? "완료" : "미완료"]);
+      });
+
+      const worksheet = XLSX.utils.aoa_to_sheet(excelData);
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, worksheet, "학습스케줄");
+      XLSX.writeFile(workbook, "오늘의_학습_플래너.xlsx");
+    }
+
+    /* Pomodoro Timer Functionality */
+    let timerInterval = null;
+    let timeLeft = 25 * 60;
+
+    function updateTimerDisplay() {
+      const mins = Math.floor(timeLeft / 60).toString().padStart(2, '0');
+      const secs = (timeLeft % 60).toString().padStart(2, '0');
+      document.getElementById('timerDisplay').innerText = `${mins}:${secs}`;
+    }
+
+    function startTimer() {
+      if (timerInterval) return;
+      timerInterval = setInterval(() => {
+        if (timeLeft > 0) {
+          timeLeft--;
+          updateTimerDisplay();
+        } else {
+          clearInterval(timerInterval);
+          timerInterval = null;
+          alert('포모도로 집중 시간이 완료되었습니다!');
+        }
+      }, 1000);
+    }
+
+    function pauseTimer() {
+      clearInterval(timerInterval);
+      timerInterval = null;
+    }
+
+    function resetTimer() {
+      pauseTimer();
+      timeLeft = 25 * 60;
+      updateTimerDisplay();
+    }
+  </script>
+</body>
+</html>
